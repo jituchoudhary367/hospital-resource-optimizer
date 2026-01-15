@@ -1,30 +1,32 @@
 import streamlit as st
 import pandas as pd
-import mlflow.pyfunc
+import joblib
 
-MODEL_NAME = "HospitalLOSModel"
-MODEL_URI = f"models:/{MODEL_NAME}@production"
+# ------------------ LOAD MODEL ------------------
 
 @st.cache_resource
 def load_model():
-    return mlflow.pyfunc.load_model(MODEL_URI)
+    return joblib.load("full_model_pipeline.joblib")
+
+model = load_model()
+
+# ------------------ PAGE CONFIG ------------------
 
 st.set_page_config(page_title="Hospital LOS Predictor", layout="centered")
 
 st.title("🏥 Hospital Length of Stay Predictor")
-st.write("Estimate how long a patient may stay in hospital based on admission details.")
-
-model = load_model()
+st.write("Predict expected hospital stay (in days) based on admission details.")
 
 # ------------------ INPUTS ------------------
 
 race = st.selectbox("Race", ["Caucasian", "AfricanAmerican", "Asian", "Hispanic", "Other", "Unknown"])
 gender = st.selectbox("Gender", ["Male", "Female", "Unknown"])
 
-age = st.selectbox("Age Range", [
-    "[0-10)", "[10-20)", "[20-30)", "[30-40)", "[40-50)",
-    "[50-60)", "[60-70)", "[70-80)", "[80-90)", "[90-100)"
-])
+age = st.selectbox(
+    "Age Range",
+    ["[0-10)", "[10-20)", "[20-30)", "[30-40)", "[40-50)",
+     "[50-60)", "[60-70)", "[70-80)", "[80-90)", "[90-100)"]
+)
 
 admission_type_id = st.selectbox("Admission Type ID", list(range(1, 9)))
 discharge_disposition_id = st.selectbox("Discharge Disposition ID", list(range(1, 30)))
@@ -48,7 +50,8 @@ diabetesMed = st.selectbox("Diabetes Medication", ["Yes", "No"])
 
 # ------------------ PREDICT ------------------
 
-if st.button("Predict Length of Stay"):
+if st.button("🔍 Predict Length of Stay"):
+
     input_df = pd.DataFrame([{
         "race": race,
         "gender": gender,
@@ -70,6 +73,18 @@ if st.button("Predict Length of Stay"):
         "diabetesMed": diabetesMed,
     }])
 
-    prediction = model.predict(input_df)[0]
+    try:
+        prediction = model.predict(input_df)[0]
 
-    st.success(f"🕒 Estimated Length of Stay: **{prediction:.1f} days**")
+        st.success(f"🕒 Estimated Length of Stay: **{prediction:.1f} days**")
+
+        if prediction >= 7:
+            st.warning("⚠️ High expected stay — possible high resource utilization.")
+        elif prediction >= 4:
+            st.info("ℹ️ Medium expected stay.")
+        else:
+            st.success("✅ Short expected stay.")
+
+    except Exception as e:
+        st.error("Prediction failed. Check model compatibility.")
+        st.exception(e)
