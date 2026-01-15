@@ -99,10 +99,6 @@ This step loads data, builds features, trains the model, and logs experiments to
 python src/pipeline/train_pipeline.py
 ```
 
-Open in browser:
-
-http://localhost:5000
-
 🖥️ Run Inference Application
 
 After training:
