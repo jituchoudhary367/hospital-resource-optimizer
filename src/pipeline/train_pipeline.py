@@ -19,7 +19,6 @@ from joblib import dump
 from src.features.build_features import build_pipeline
 
 
-# ---------------- CONFIG ----------------
 
 DATA_PATH = ROOT / "data" / "processed" / "clean.csv"
 TARGET = "time_in_hospital"
@@ -40,7 +39,6 @@ def get_model(model_name, trees):
         raise ValueError("Model must be 'lr' or 'rf'")
 
 
-# ---------------- TRAIN PIPELINE ----------------
 
 def main(args):
     print("Loading dataset...")
@@ -86,7 +84,7 @@ def main(args):
         print("RMSE:", rmse)
         print("R2:", r2)
 
-        # -------- SAVE FULL PIPELINE FOR DEPLOYMENT --------
+        
         model_output_path = ROOT / "full_model_pipeline.joblib"
         dump(full_pipeline, model_output_path)
         print(f"Saved deployment model to: {model_output_path}")
@@ -94,7 +92,7 @@ def main(args):
     print("Pipeline run complete.")
 
 
-# ---------------- CLI ----------------
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
