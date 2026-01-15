@@ -4,25 +4,27 @@ import mlflow
 import mlflow.sklearn
 import sys
 from pathlib import Path
+from math import sqrt
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.append(str(ROOT))
-
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
-from math import sqrt
-
 from joblib import dump
+
 from src.features.build_features import build_pipeline
 
 
-DATA_PATH = "data/processed/clean.csv"
+
+DATA_PATH = ROOT / "data" / "processed" / "clean.csv"
 TARGET = "time_in_hospital"
 
+
+# ---------------- MODEL FACTORY ----------------
 
 def get_model(model_name, trees):
     if model_name == "lr":
@@ -35,6 +37,7 @@ def get_model(model_name, trees):
         )
     else:
         raise ValueError("Model must be 'lr' or 'rf'")
+
 
 
 def main(args):
@@ -81,7 +84,14 @@ def main(args):
         print("RMSE:", rmse)
         print("R2:", r2)
 
+        
+        model_output_path = ROOT / "full_model_pipeline.joblib"
+        dump(full_pipeline, model_output_path)
+        print(f"Saved deployment model to: {model_output_path}")
+
     print("Pipeline run complete.")
+
+
 
 
 if __name__ == "__main__":
